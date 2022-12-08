@@ -2,12 +2,17 @@ import { FormControl } from './my-input';
 
 class MyRadio extends HTMLElement {
     value?: string;
-    template = `<div></div>`;
+    template = `<div><slot></slot></div>`;
+    styleString = `
+    `;
     formcontrol?: FormControl;
     controlName?: string;
     options = [];
+    shadow: ShadowRoot;
     constructor() {
         super();
+        this.shadow = this.attachShadow({ mode: 'closed' });
+        this.shadow.innerHTML = `<style>${this.styleString}</style>${this.template}`;
     }
     connectedCallback() {
         this.controlName = this.getAttribute('formcontrol') || '';

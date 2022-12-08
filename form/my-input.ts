@@ -48,6 +48,11 @@ class MyInput extends HTMLInputElement {
     }
     // form 触发 校验
     validation() {}
+    // 暴露对外接口
+    public validate() {}
+    public setValue() {}
+    public focus() {}
+    public clear() {}
 }
 customElements.define('my-input', MyInput, { extends: 'input' });
 
