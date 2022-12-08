@@ -9,7 +9,9 @@ class MyDialogModel extends HTMLElement {
                             <span class="dialog-header-title"></span>
                             <img src="../menu/close.svg" />
                         </div>
-                        <slot></slot>
+                        <div class="dialog-body">
+                            <slot></slot>
+                        </div>
                     </div>
                 </div>`;
     styleString = `
@@ -36,6 +38,9 @@ class MyDialogModel extends HTMLElement {
     .dialog-header{
         height:20px;
         padding: 10px;
+    }
+    .dialog-body{
+        
     }
     .dialog-header > img{
         height: 14px;
