@@ -1,3 +1,9 @@
+let defaultConfig: CustomEventInit = {
+    bubbles: false,
+    cancelable: true,
+    composed: true,
+    detail: {},
+};
 class MyOption extends HTMLElement {
     template = `<div class="container" >
                     <slot>
@@ -96,6 +102,7 @@ class MySelect extends HTMLElement {
     expendDom?: HTMLInputElement;
     shadeDom?: HTMLElement;
     optionsDom: HTMLElement;
+    optionTemplate?: string;
     static get observedAttributes() {
         return ['label-key', 'value-key'];
     }
@@ -141,33 +148,31 @@ class MySelect extends HTMLElement {
         // 需要异步操作
         setTimeout(() => {
             let defaultTemplate = slot?.innerHTML,
-                slotTemplate = this.innerHTML.trim(),
-                resultTemplate = slotTemplate || defaultTemplate;
-            let optionsTemplate = this.options.map((ctx) => {
-                return resultTemplate!.replace(
-                    /{{[^{}]+}}/g,
-                    (target: string) => {
-                        return (
-                            ctx[
-                                target.substring(2, target.length - 2).trim()
-                            ] || ''
-                        );
-                    }
-                );
-            });
-            this.optionsDom.innerHTML = optionsTemplate.join('');
+                slotTemplate = this.innerHTML.trim();
+            this.optionTemplate = slotTemplate || defaultTemplate;
+            this.applyOptions();
             this.optionsDom.addEventListener(
                 'click',
                 (e) => {
                     let path = e.path,
                         index = path.indexOf(this.optionsDom);
                     if (index >= 1) {
-                        console.log(
-                            path[index - 1],
+                        // 传播事件
+                        if (
+                            this.expendDom!.value !==
                             path[index - 1].getAttribute('value')
-                        );
-                        this.expendDom!.value =
-                            path[index - 1].getAttribute('value');
+                        ) {
+                            this.expendDom!.value =
+                                path[index - 1].getAttribute('value');
+                            this.emit('change', {
+                                detail: {
+                                    value: this.expendDom!.value,
+                                    source: this,
+                                    nextState: 'normal',
+                                    once: false,
+                                },
+                            });
+                        }
                         // 下发给options 当前选中值
                         Array.from(this.optionsDom.children).forEach(
                             (optionDOM) => {
@@ -182,6 +187,34 @@ class MySelect extends HTMLElement {
             );
         });
         console.log(this.getAttribute('label-key'), 'label-key');
+    }
+    applyOptions() {
+        let optionsTemplate = this.options.map((ctx) => {
+            return this.optionTemplate!.replace(
+                /{{[^{}]+}}/g,
+                (target: string) => {
+                    return (
+                        ctx[target.substring(2, target.length - 2).trim()] || ''
+                    );
+                }
+            );
+        });
+        this.optionsDom.innerHTML = optionsTemplate.join('');
+    }
+    changeOptions(newOptions) {
+        if (newOptions !== this.options) {
+            this.options = newOptions;
+        }
+        this.expendDom!.value = '';
+        this.applyOptions();
+    }
+    // event事件
+    private emit(type: string, additionConfig: CustomEventInit = {}) {
+        const event = new CustomEvent(
+            type,
+            Object.assign(defaultConfig, additionConfig)
+        );
+        this.dispatchEvent(event);
     }
 }
 customElements.define('my-select', MySelect);

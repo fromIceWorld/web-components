@@ -3,17 +3,16 @@ class MyIf extends HTMLElement {
                 <div>
                     <slot></slot>
                 </div>
-                <template id="toIf">
-                    <span>{{label}}</span>
-                </template>
                 `;
     renderTemplate = '';
     // shadow: ShadowRoot;
     static get observedAttributes() {
-        return ['template'];
+        return ['template', 'expend'];
     }
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        console.log(document.querySelector(`template[id=${newValue}]`));
+        if (name === 'expend') {
+            this.setBoolean(newValue === 'true');
+        }
     }
     constructor() {
         super();
@@ -22,10 +21,6 @@ class MyIf extends HTMLElement {
     }
     connectedCallback() {
         setTimeout(() => {
-            console.log(
-                this.shadow.querySelector('template[id=toIf]')?.innerHTML
-            );
-            this.renderTemplate = this.innerHTML;
             this.setBoolean(true);
         });
     }

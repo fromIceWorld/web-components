@@ -3,9 +3,6 @@ class MyFor extends HTMLElement {
                 <div>
                     <slot></slot>
                 </div>
-                <template id="toFor">
-                    <span>{{label}}</span>
-                </template>
                 `;
     iterationTemplate = '';
     options: Array<any> = [];
