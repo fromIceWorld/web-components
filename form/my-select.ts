@@ -49,6 +49,8 @@ class MyOption extends HTMLElement {
 customElements.define('my-option', MyOption);
 
 class MySelect extends HTMLElement {
+    static index = 0;
+    static tagNamePrefix: string = 'my-select';
     template = `
         <div class="container">
             <div class="input-box">
@@ -91,7 +93,7 @@ class MySelect extends HTMLElement {
         width: 100%;
         position: absolute;
     }`;
-    options: { [key: string]: any }[] = [];
+    options: { [key: string]: any }[] = []; // 实例化值
     type = 'normal'; // 普通select
     mode = 'normal'; // options来源
     clear = 'false'; // 是否支持清除
@@ -104,15 +106,36 @@ class MySelect extends HTMLElement {
     optionsDom: HTMLElement;
     optionTemplate?: string;
     static get observedAttributes() {
-        return ['label-key', 'value-key'];
+        return ['label-key', 'value-key', 'options'];
     }
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         console.log(name, oldValue, newValue);
+        if (name === 'options') {
+            if (newValue === '[object Object]') {
+                return;
+            }
+            let value = eval(newValue);
+            console.log(name, value, Array.isArray(value));
+            if (Array.isArray(value)) {
+                this.changeOptions(value);
+                this.setAttribute(name, {});
+            }
+        }
+    }
+    // 劫持setAttribute
+    setAttribute(key: string, value: string, isAttribute: boolean) {
+        console.log(key, value, super.setAttribute);
+        super.setAttribute.call(this, key, value);
     }
     constructor() {
         super();
+        // 初始化事件
         this.shadow = this.attachShadow({ mode: 'open' });
         this.shadow.innerHTML = `<style>${this.styleString}</style>${this.template}`;
+        this.init();
+    }
+    // 初始化事件
+    init() {
         this.optionsDom = this.shadow.querySelector('.select-options')!;
         if (this.type === 'normal') {
             this.shadeDom = this.shadow.querySelector('.shade-board')!;
@@ -149,7 +172,8 @@ class MySelect extends HTMLElement {
         setTimeout(() => {
             let defaultTemplate = slot?.innerHTML,
                 slotTemplate = this.innerHTML.trim();
-            this.optionTemplate = slotTemplate || defaultTemplate;
+            this.optionTemplate =
+                this.optionTemplate || slotTemplate || defaultTemplate;
             this.applyOptions();
             this.optionsDom.addEventListener(
                 'click',
@@ -201,12 +225,47 @@ class MySelect extends HTMLElement {
         });
         this.optionsDom.innerHTML = optionsTemplate.join('');
     }
+
     changeOptions(newOptions) {
         if (newOptions !== this.options) {
             this.options = newOptions;
         }
         this.expendDom!.value = '';
         this.applyOptions();
+    }
+    /**
+     *
+     * @param option { options:string}
+     * @returns {
+     *  html: string
+     *  js: string
+     *  tagName: string
+     * }
+     */
+    // 实例化组件
+    static extends(option: { options: string }): {
+        html: string;
+        js: string;
+        tagName: string;
+    } {
+        const { options } = option,
+            index = MySelect.index++,
+            tagName = `${MySelect.tagNamePrefix}-${index}`;
+        const html = `<${tagName}></${tagName}>`,
+            js = `
+                class MySelect${index} extends MySelect{
+                    constructor(){
+                        super();
+                        this.options = ${options};
+                    }
+                };
+                customElements.define('${tagName}', MySelect${index});
+            `;
+        return {
+            html,
+            js,
+            tagName,
+        };
     }
     // event事件
     private emit(type: string, additionConfig: CustomEventInit = {}) {
@@ -217,22 +276,5 @@ class MySelect extends HTMLElement {
         this.dispatchEvent(event);
     }
 }
-customElements.define('my-select', MySelect);
 
-class MySelect1 extends MySelect {
-    constructor() {
-        super();
-        this.options = [
-            {
-                label: '饺子',
-                value: '饺子',
-            },
-            {
-                label: '面条',
-                value: '面条',
-            },
-        ];
-    }
-}
-customElements.define('my-select-1', MySelect1);
 export { MySelect, MyOption };
