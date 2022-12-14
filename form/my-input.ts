@@ -2,6 +2,8 @@ import { FormControl, FormGroup } from './control/index';
 import { MyForm } from './my-form';
 
 class MyInput extends HTMLInputElement {
+    static index = 0;
+    static tagNamePrefix: string = 'my-input-box';
     regexp?: string;
     updateOn?: string;
     controlName?: string;
@@ -48,6 +50,41 @@ class MyInput extends HTMLInputElement {
     }
     // form 触发 校验
     validation() {}
+    /**
+     *
+     * @param option { html:any, css:any}
+     * @returns {
+     *  html: string
+     *  js: string
+     * }
+     */
+    static extends(option) {
+        const { html, css } = option;
+        const index = MyInput.index++,
+            tagName = `${MyInput.tagNamePrefix}-${index}`;
+        const { attributes, properties } = html;
+        const { placeholder, formcontrol } = attributes;
+        const { value, updateOn, regexp } = properties;
+        let config = {
+            html: `<input 
+                        is=${tagName}"
+                        type="text"
+                        placeholder="${placeholder}"
+                        formcontrol="${formcontrol}"
+                   ></input>`,
+            js: `class MyInput${index} extends MyInput{
+                constructor(){
+                    super();
+                    this.value = '${value}';
+                    this.regexp = '${regexp}';
+                    this.updateOn = '${updateOn}';
+                }
+            };
+            customElements.define('${tagName}',MyInput${index},{ extends: 'input' })
+            `,
+        };
+        return config;
+    }
     // 暴露对外接口
     public validate() {}
     public setValue() {}

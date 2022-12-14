@@ -77,7 +77,6 @@ class MyDeepFor extends HTMLElement {
                 );
             }
             this?.innerHTML = t;
-            console.log(t);
         });
     }
 }

@@ -10,6 +10,8 @@ let defaultConfig: CustomEventInit = {
     detail: {},
 };
 class MyButton extends HTMLElement {
+    static index = 0;
+    static tagNamePrefix: string = 'my-button';
     icon?: string;
     name?: string;
     type?: string;
@@ -173,6 +175,35 @@ class MyButton extends HTMLElement {
     // 更改当前组件状态，分发给订阅者
     changeState(status: ButtonSTATES) {
         console.log(status);
+    }
+    // 导出渲染数据
+    /**
+     *
+     * @param option 参数配置
+     * @returns {
+     *      html, js
+     * }
+     */
+    static extends(option): { html: string; js: string } {
+        const index = MyButton.index++,
+            tagName = `${MyButton.tagNamePrefix}-${index}`;
+        const { html, css } = option;
+        const { attributes, properties } = html,
+            { name, icon, shape, type } = properties;
+        return {
+            html: `<${tagName}></${tagName}>`,
+            js: `class MyButton${index} extends MyButton{
+                constructor(){
+                    super();
+                    this.name = '${name}';
+                    this.icon = '${icon}';
+                    this.shape = '${shape}';
+                    this.type = '${type}';
+                }
+            }
+            customElements.define('${tagName}',MyButton${index})
+            `,
+        };
     }
     // 暴露出对外状态接口
     public loading() {

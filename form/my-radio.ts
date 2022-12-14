@@ -1,6 +1,8 @@
 import { FormControl } from './my-input';
 
 class MyRadio extends HTMLElement {
+    static index = 0;
+    static tagNamePrefix: string = 'my-radio';
     value?: string;
     template = `<div><slot></slot></div>`;
     styleString = `
@@ -52,6 +54,25 @@ class MyRadio extends HTMLElement {
         });
     }
     disconnectedCallback() {}
+    static extends(option) {
+        const { html, css } = option;
+        const index = MyRadio.index++,
+            tagName = `${MyRadio.tagNamePrefix}-${index}`;
+        const { attributes, properties } = html;
+        const { options } = properties;
+        const { formcontrol } = attributes;
+        return {
+            html: `<${tagName} formcontrol='${formcontrol}'></${tagName}>`,
+            js: `class MyRadio${index} extends MyRadio{
+                constructor(){
+                    super();
+                    this.options = ${options}
+                }
+            }
+            customElements.define('${tagName}',MyRadio${index})
+            `,
+        };
+    }
 }
 customElements.define('my-radio', MyRadio);
 export { MyRadio };

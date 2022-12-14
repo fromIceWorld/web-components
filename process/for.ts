@@ -56,7 +56,6 @@ class MyFor extends HTMLElement {
                 );
             }
             this?.innerHTML = t;
-            console.log(t);
         });
     }
 }

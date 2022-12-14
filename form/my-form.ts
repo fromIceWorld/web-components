@@ -1,6 +1,8 @@
 import { FormGroup } from './control/index';
 
 class MyForm extends HTMLElement {
+    static index = 0;
+    static tagNamePrefix: string = 'my-form';
     template = `<div>
                     <slot></slot>
                 </div>`;
@@ -26,6 +28,43 @@ class MyForm extends HTMLElement {
     disconnectedCallback() {}
     adoptedCallback() {}
     attributeChangedCallback() {}
+    /**
+     *
+     * @param option { options:string}
+     * @returns {
+     *  html: string
+     *  js: string
+     *  tagName: string
+     * }
+     */
+    static extends(option) {
+        const { html, css } = option;
+        const index = MyForm.index++,
+            tagName = `${MyForm.tagNamePrefix}-${index}`;
+        const { attributes, properties } = html,
+            { formgroup } = attributes;
+        const { api } = properties;
+        const { style } = css,
+            flexDirection = style['flex-direction'];
+
+        return {
+            html: `<${tagName} formgroup="${formgroup}" style="display:flex;${
+                flexDirection
+                    ? flexDirection === 'row'
+                        ? 'flex-direction:row'
+                        : 'flex-direction:column'
+                    : ''
+            }"></${tagName}>`,
+            js: `class MyForm${index} extends MyForm{
+                    constructor(){
+                        super();
+                        this.api = '${api}'
+                    }
+                 }
+                 customElements.define('${tagName}',MyForm${index})
+                 `,
+        };
+    }
     public submit() {
         console.log('submit');
         this.subscribers.forEach((sub) => {
@@ -39,6 +78,5 @@ class MyForm extends HTMLElement {
         });
     }
 }
-const A = 0;
 customElements.define('my-form', MyForm);
-export { MyForm, FormGroup, A };
+export { MyForm, FormGroup };

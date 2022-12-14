@@ -3,6 +3,8 @@ enum DialogStates {
     hiden,
 }
 class MyDialogModel extends HTMLElement {
+    static index = 0;
+    static tagNamePrefix: string = 'my-dialog-model';
     template = `<div class="container" style="display:none;">
                     <div class = "content">
                         <div class="dialog-header">
@@ -96,6 +98,44 @@ class MyDialogModel extends HTMLElement {
         this.container!.addEventListener('click', () => {
             console.log('container click', this.state);
         });
+    }
+    /**
+     *
+     * @param option { options:string}
+     * @returns {
+     *  html: string
+     *  js: string
+     *  tagName: string
+     * }
+     */
+    // 实例化组件
+    static extends(option) {
+        const { html, css } = option;
+        const index = MyDialogModel.index++,
+            tagName = `${MyDialogModel.tagNamePrefix}-${index}`;
+        const { attributes, properties } = html;
+        const { title } = attributes;
+        const { api } = properties;
+        const { style, classes } = css,
+            flexDirection = style['flex-direction'];
+        return {
+            html: `<${tagName} style="display:flex;${
+                flexDirection
+                    ? flexDirection === 'row'
+                        ? 'flex-direction:row'
+                        : 'flex-direction:column'
+                    : ''
+            }"></${tagName}>`,
+            js: `class MyDialogModel${index} extends MyDialogModel{
+                    constructor(){
+                        super();
+                        this.MyTitle = '${title}';
+                        this.init();
+                    }
+                 }
+                 customElements.define('${tagName}',MyDialogModel${index})
+                 `,
+        };
     }
     // 更改组件状态的入口函数
     private changeState(target: boolean) {

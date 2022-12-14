@@ -29,7 +29,6 @@ class MyIf extends HTMLElement {
         setTimeout(() => {
             let t = render ? this.renderTemplate : ``;
             this?.innerHTML = t;
-            console.log(t);
         });
     }
 }

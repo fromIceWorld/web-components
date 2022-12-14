@@ -239,32 +239,29 @@ class MySelect extends HTMLElement {
      * @returns {
      *  html: string
      *  js: string
-     *  tagName: string
      * }
      */
     // 实例化组件
-    static extends(option: { options: string }): {
+    static extends(option): {
         html: string;
         js: string;
-        tagName: string;
     } {
-        const { options } = option,
-            index = MySelect.index++,
+        const { html, css } = option;
+        const index = MySelect.index++,
             tagName = `${MySelect.tagNamePrefix}-${index}`;
-        const html = `<${tagName}></${tagName}>`,
-            js = `
-                class MySelect${index} extends MySelect{
-                    constructor(){
-                        super();
-                        this.options = ${options};
-                    }
-                };
-                customElements.define('${tagName}', MySelect${index});
-            `;
+        const { attributes, properties } = html;
+        const { options } = properties;
         return {
-            html,
-            js,
-            tagName,
+            html: `<${tagName}></${tagName}>`,
+            js: `
+            class MySelect${index} extends MySelect{
+                constructor(){
+                    super();
+                    this.options = ${options};
+                }
+            };
+            customElements.define('${tagName}', MySelect${index});
+        `,
         };
     }
     // event事件
