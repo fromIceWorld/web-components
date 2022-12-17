@@ -245,23 +245,25 @@ class MySelect extends HTMLElement {
     static extends(option): {
         html: string;
         js: string;
+        tagName: string;
     } {
         const { html, css } = option;
         const index = MySelect.index++,
             tagName = `${MySelect.tagNamePrefix}-${index}`;
         const { attributes, properties } = html;
-        const { options } = properties;
+        const { options } = attributes;
         return {
             html: `<${tagName}></${tagName}>`,
             js: `
-            class MySelect${index} extends MySelect{
-                constructor(){
-                    super();
-                    this.options = ${options};
-                }
-            };
-            customElements.define('${tagName}', MySelect${index});
-        `,
+                class MySelect${index} extends MySelect{
+                    constructor(){
+                        super();
+                        this.options = ${options};
+                    }
+                };
+                customElements.define('${tagName}', MySelect${index});
+            `,
+            tagName,
         };
     }
     // event事件

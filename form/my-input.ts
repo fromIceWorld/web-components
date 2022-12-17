@@ -4,8 +4,9 @@ import { MyForm } from './my-form';
 class MyInput extends HTMLInputElement {
     static index = 0;
     static tagNamePrefix: string = 'my-input-box';
-    regexp?: string;
-    updateOn?: string;
+    regexp: string = '';
+    reg?: RegExp;
+    updateOn: string = 'change'; // 默认 【change】 时校验
     controlName?: string;
     // form表单
     formgroup?: FormGroup;
@@ -18,12 +19,15 @@ class MyInput extends HTMLInputElement {
         super();
     }
     connectedCallback() {
+        console.log('自定义input');
         this.controlName = this.getAttribute('formcontrol') || '';
         if (this.controlName) {
             this.formcontrol = new FormControl(this);
         }
+        // 初始化正则
+        this.initReg();
         this.getUpForm();
-        this.initEvent();
+        this.initEvents();
     }
     attributeChangedCallback() {}
 
@@ -33,7 +37,7 @@ class MyInput extends HTMLInputElement {
         while (parent) {
             const { tagName, parentElement } = parent;
             let formgroup;
-            if (tagName === 'MY-FORM' && this.controlName) {
+            if (tagName.startsWith('MY-FORM') && this.controlName) {
                 this.formgroup = formgroup = (parent as MyForm).formgroup!;
                 formgroup.register(this.controlName, this.formcontrol!);
                 this.parent = parent as MyForm;
@@ -42,10 +46,20 @@ class MyInput extends HTMLInputElement {
             parent = parentElement;
         }
     }
-    initEvent() {
-        this.addEventListener('change', (e) => {
-            this.value = this.formcontrol!.value = (e.target as any).value;
-            console.log('my-input change', this.value);
+    // 初始化正则
+    initReg() {
+        this.reg = new RegExp(this.regexp);
+    }
+    initEvents() {
+        // 添加 变更校验事件
+        this.initValidation();
+    }
+    // 变更校验事件
+    initValidation() {
+        this.addEventListener(this.updateOn, (e) => {
+            let value = (e.target as any).value,
+                valid = this.reg!.test(value);
+            console.log('my-input change', valid);
         });
     }
     // form 触发 校验
@@ -67,11 +81,11 @@ class MyInput extends HTMLInputElement {
         const { value, updateOn, regexp } = properties;
         let config = {
             html: `<input 
-                        is=${tagName}"
+                        is=${tagName}
                         type="text"
                         placeholder="${placeholder}"
                         formcontrol="${formcontrol}"
-                   ></input>`,
+                   />`,
             js: `class MyInput${index} extends MyInput{
                 constructor(){
                     super();
@@ -80,7 +94,7 @@ class MyInput extends HTMLInputElement {
                     this.updateOn = '${updateOn}';
                 }
             };
-            customElements.define('${tagName}',MyInput${index},{ extends: 'input' })
+            customElements.define('${tagName}',MyInput${index},{ extends: 'input' });
             `,
         };
         return config;

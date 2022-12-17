@@ -201,13 +201,16 @@ class MyButton extends HTMLElement {
                     this.type = '${type}';
                 }
             }
-            customElements.define('${tagName}',MyButton${index})
+            customElements.define('${tagName}',MyButton${index});
             `,
         };
     }
     // 暴露出对外状态接口
     public loading() {
         this.changeState(ButtonSTATES.loading);
+    }
+    public normal() {
+        this.changeState(ButtonSTATES.normal);
     }
     public disabled() {
         this.changeState(ButtonSTATES.disabled);

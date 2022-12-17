@@ -1,5 +1,10 @@
 import { FormGroup } from './control/index';
-
+let defaultConfig: CustomEventInit = {
+    bubbles: false,
+    cancelable: true,
+    composed: true,
+    detail: {},
+};
 class MyForm extends HTMLElement {
     static index = 0;
     static tagNamePrefix: string = 'my-form';
@@ -8,6 +13,7 @@ class MyForm extends HTMLElement {
                 </div>`;
     styleString = `
     `;
+    api: string = '';
     formgroup = new FormGroup();
     subscribers: Function[] = []; //订阅者
     // shadow: ShadowRoot;
@@ -37,6 +43,42 @@ class MyForm extends HTMLElement {
      *  tagName: string
      * }
      */
+
+    // submit
+    public submit() {
+        let xhr = new XMLHttpRequest(),
+            that = this;
+        xhr.open('get', this.api);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                let { code, data } = JSON.parse(xhr.responseText);
+                if (code === 200) {
+                    that.emit('200', {});
+                    console.log(code, data);
+                } else if (code === 500) {
+                    that.emit('500', {});
+                    console.log(code, data);
+                }
+            }
+        };
+        xhr.send();
+        console.log('submit');
+        this.subscribers.forEach((sub) => {
+            sub();
+        });
+    }
+    public reset() {
+        console.log('submit');
+        this.subscribers.forEach((sub) => {
+            sub();
+        });
+    }
+    public patchValue() {
+        console.log('patchValue');
+        this.subscribers.forEach((sub) => {
+            sub();
+        });
+    }
     static extends(option) {
         const { html, css } = option;
         const index = MyForm.index++,
@@ -46,7 +88,6 @@ class MyForm extends HTMLElement {
         const { api } = properties;
         const { style } = css,
             flexDirection = style['flex-direction'];
-
         return {
             html: `<${tagName} formgroup="${formgroup}" style="display:flex;${
                 flexDirection
@@ -61,21 +102,17 @@ class MyForm extends HTMLElement {
                         this.api = '${api}'
                     }
                  }
-                 customElements.define('${tagName}',MyForm${index})
+                 customElements.define('${tagName}',MyForm${index});
                  `,
         };
     }
-    public submit() {
-        console.log('submit');
-        this.subscribers.forEach((sub) => {
-            sub();
-        });
-    }
-    public reset() {
-        console.log('submit');
-        this.subscribers.forEach((sub) => {
-            sub();
-        });
+    // event事件
+    private emit(type: string, additionConfig: CustomEventInit = {}) {
+        const event = new CustomEvent(
+            type,
+            Object.assign(defaultConfig, additionConfig)
+        );
+        this.dispatchEvent(event);
     }
 }
 customElements.define('my-form', MyForm);

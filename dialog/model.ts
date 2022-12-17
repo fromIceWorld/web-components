@@ -1,6 +1,6 @@
 enum DialogStates {
-    visible,
     hiden,
+    visible,
 }
 class MyDialogModel extends HTMLElement {
     static index = 0;
@@ -133,7 +133,7 @@ class MyDialogModel extends HTMLElement {
                         this.init();
                     }
                  }
-                 customElements.define('${tagName}',MyDialogModel${index})
+                 customElements.define('${tagName}',MyDialogModel${index});
                  `,
         };
     }
@@ -144,18 +144,19 @@ class MyDialogModel extends HTMLElement {
         this.state = target ? DialogStates.visible : DialogStates.hiden;
     }
     // 对外暴露event
-    public visibleChange(event: CustomEvent) {
-        if (event) {
-            const { value, source, nextState, once } = event.detail;
-            console.log(value, source, nextState, once);
-        }
-
-        this.changeState(true);
+    public visibleChange() {
+        this.changeState(!this.state);
     }
     public visible() {
+        if (this.state) {
+            return;
+        }
         this.changeState(true);
     }
     public hiden() {
+        if (!this.state) {
+            return;
+        }
         this.changeState(false);
     }
 }

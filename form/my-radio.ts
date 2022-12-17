@@ -69,7 +69,7 @@ class MyRadio extends HTMLElement {
                     this.options = ${options}
                 }
             }
-            customElements.define('${tagName}',MyRadio${index})
+            customElements.define('${tagName}',MyRadio${index});
             `,
         };
     }
