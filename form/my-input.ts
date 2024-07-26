@@ -1,5 +1,5 @@
 import { FormControl, FormGroup } from './control/index';
-import { MyForm } from './my-form';
+import { FormComponent } from './my-form';
 
 class MyInput extends HTMLInputElement {
     static index = 0;
@@ -11,7 +11,7 @@ class MyInput extends HTMLInputElement {
     // form表单
     formgroup?: FormGroup;
     formcontrol?: FormControl;
-    parent?: MyForm;
+    parent?: FormComponent;
     static get observedAttributes() {
         return ['value'];
     }
@@ -38,9 +38,10 @@ class MyInput extends HTMLInputElement {
             const { tagName, parentElement } = parent;
             let formgroup;
             if (tagName.startsWith('MY-FORM') && this.controlName) {
-                this.formgroup = formgroup = (parent as MyForm).formgroup!;
+                this.formgroup = formgroup = (parent as FormComponent)
+                    .formgroup!;
                 formgroup.register(this.controlName, this.formcontrol!);
-                this.parent = parent as MyForm;
+                this.parent = parent as FormComponent;
                 return;
             }
             parent = parentElement;

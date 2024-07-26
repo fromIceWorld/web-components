@@ -1,9 +1,16 @@
+let defaultConfig: CustomEventInit = {
+    bubbles: false,
+    cancelable: true,
+    composed: true,
+    detail: {},
+};
 class MyFor extends HTMLElement {
     template = `
                 <div>
                     <slot></slot>
                 </div>
                 `;
+    templateId = '';
     iterationTemplate = '';
     cache: Map<string, HTMLElement> = new Map(); //缓存
     cacheOptions: Array<any> = [];
@@ -24,6 +31,9 @@ class MyFor extends HTMLElement {
                 this.setAttribute(name, {});
             }
         }
+        if (name === 'template') {
+            this.templateId = newValue;
+        }
     }
     // 劫持setAttribute
     setAttribute(key, value) {
@@ -40,17 +50,21 @@ class MyFor extends HTMLElement {
     }
     connectedCallback() {
         console.log(this.children);
-
         setTimeout(() => {
-            this.iterationTemplate = this.innerHTML;
+            this.iterationTemplate = this.templateId
+                ? document.querySelector(`template[id=${this.templateId}]`)!
+                      .innerHTML
+                : this.innerHTML;
+            console.log(this.iterationTemplate);
             this.setIteration(this.options);
         });
     }
     // 对比新旧数据
     diff(list: any[]) {
         let newCache = new Map();
-        let newDOMs: Element[] = list.map((ctx) => {
-            let id = JSON.stringify(ctx);
+        let newDOMs: Element[] = list.map((ctx, index) => {
+            let id = JSON.stringify(ctx),
+                eventName = ctx['event'];
             if (this.cache.has(id)) {
                 newCache.set(id, this.cache.get(id));
                 return this.cache.get(id)!;
@@ -67,6 +81,17 @@ class MyFor extends HTMLElement {
                 );
                 let dom = document.createElement('div');
                 dom.innerHTML = s;
+                // 添加事件
+                if (eventName && dom.children[0]) {
+                    dom.children[0].addEventListener(eventName, (e) => {
+                        this.emit(`item:${eventName}`, {
+                            detail: {
+                                target: e.target,
+                                index,
+                            },
+                        });
+                    });
+                }
                 newCache.set(id, dom.children[0]);
                 return dom.children[0];
             }
@@ -103,22 +128,41 @@ class MyFor extends HTMLElement {
                 p++;
             }
         }
-        // 当有新增，减少的节点时
+        // 当有新增的节点时
         if (i > j) {
             if (p <= q) {
-                preDOMs[j].after(...newDOMs.slice(p, q + 1));
+                if (j >= 0) {
+                    preDOMs[j].after(...newDOMs.slice(p, q + 1));
+                } else {
+                    this.append(...newDOMs.slice(p, q + 1));
+                }
             }
         }
+        // 当有减少的节点时
         if (p > q) {
             if (i <= j) {
                 for (; i <= j; i++) {
-                    preDOMs[i].remove();
+                    if (preDOMs[i]) {
+                        preDOMs[i].remove();
+                    }
                 }
             }
         }
     }
+    /**
+     *
+     * @param type
+     * @param additionConfig
+     */
+    // event事件
+    private emit(type: string, additionConfig: CustomEventInit = {}) {
+        const event = new CustomEvent(
+            type,
+            Object.assign(defaultConfig, additionConfig)
+        );
+        this.dispatchEvent(event);
+    }
     // 设置可迭代数据
-    //TODO:配置缓存
     setIteration(list) {
         setTimeout(() => {
             this.diff(list);
@@ -126,5 +170,4 @@ class MyFor extends HTMLElement {
         });
     }
 }
-customElements.define('my-for', MyFor);
 export { MyFor };

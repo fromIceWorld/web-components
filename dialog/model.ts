@@ -109,7 +109,7 @@ class MyDialogModel extends HTMLElement {
      * }
      */
     // 实例化组件
-    static extends(option) {
+    static extends(option: { html: any; css: any }) {
         const { html, css } = option;
         const index = MyDialogModel.index++,
             tagName = `${MyDialogModel.tagNamePrefix}-${index}`;

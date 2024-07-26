@@ -5,7 +5,7 @@ let defaultConfig: CustomEventInit = {
     composed: true,
     detail: {},
 };
-class MyForm extends HTMLElement {
+class FormComponent extends HTMLElement {
     static index = 0;
     static tagNamePrefix: string = 'my-form';
     template = `<div>
@@ -81,28 +81,28 @@ class MyForm extends HTMLElement {
     }
     static extends(option) {
         const { html, css } = option;
-        const index = MyForm.index++,
-            tagName = `${MyForm.tagNamePrefix}-${index}`;
-        const { attributes, properties } = html,
-            { formgroup } = attributes;
-        const { api } = properties;
+        const index = FormComponent.index++,
+            tagName = `${FormComponent.tagNamePrefix}-${index}`;
+        const { formgroup, api } = html;
         const { style } = css,
             flexDirection = style['flex-direction'];
         return {
-            html: `<${tagName} formgroup="${formgroup}" style="display:flex;${
+            html: `<${tagName} formgroup="${
+                formgroup.value
+            }" style="display:flex;${
                 flexDirection
                     ? flexDirection === 'row'
                         ? 'flex-direction:row'
                         : 'flex-direction:column'
                     : ''
             }"></${tagName}>`,
-            js: `class MyForm${index} extends MyForm{
+            js: `class FormComponent${index} extends FormComponent{
                     constructor(){
                         super();
-                        this.api = '${api}'
+                        this.api = '${api.value}'
                     }
                  }
-                 customElements.define('${tagName}',MyForm${index});
+                 customElements.define('${tagName}',FormComponent${index});
                  `,
         };
     }
@@ -115,5 +115,6 @@ class MyForm extends HTMLElement {
         this.dispatchEvent(event);
     }
 }
-customElements.define('my-form', MyForm);
-export { MyForm, FormGroup };
+window['FormComponent'] = FormComponent;
+customElements.define('my-form', FormComponent);
+export { FormComponent, FormGroup };
